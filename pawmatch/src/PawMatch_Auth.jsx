@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "./supabase";
 
 export default function PawMatchAuth() {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ correo: "", password: "" });
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
 
@@ -15,42 +15,40 @@ export default function PawMatchAuth() {
     e.preventDefault();
     setError("");
 
-    if (!form.email.trim()) return setError("Ingresa tu correo.");
+    if (!form.correo.trim()) return setError("Ingresa tu correo.");
     if (!form.password) return setError("Ingresa tu contraseña.");
 
     setCargando(true);
 
     try {
-      const { data, error: authError } =
-        await supabase.auth.signInWithPassword({
-          email: form.email,
-          password: form.password,
-        });
+      // 1. Login con Supabase Auth
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: form.correo,
+        password: form.password,
+      });
 
       if (authError) throw authError;
 
-      // Login exitoso: redirigir según tipo_usuario
-      const userId = data.user?.id;
-
+      // 2. Obtener datos del usuario desde la tabla "usuarios"
       const { data: usuario, error: dbError } = await supabase
         .from("usuarios")
-        .select("tipo_usuario, nombre")
-        .eq("id", userId)
+        .select("nombres, apellidos, rol")
+        .eq("correo", form.correo)
         .single();
 
       if (dbError) throw dbError;
 
-      // Guardar en localStorage para uso global si lo necesitas
+      // 3. Guardar en localStorage para uso global
       localStorage.setItem("pawmatch_user", JSON.stringify(usuario));
 
-      // Redirigir según rol
+      // 4. Redirigir según rol
       const rutas = {
         adoptante: "/inicio",
         rescatista: "/rescatista",
         refugio: "/refugio",
       };
 
-      window.location.href = rutas[usuario.tipo_usuario] || "/inicio";
+      window.location.href = rutas[usuario.rol] || "/inicio";
     } catch (err) {
       if (
         err.message?.includes("Invalid login credentials") ||
@@ -70,25 +68,22 @@ export default function PawMatchAuth() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        {/* Header */}
         <div style={styles.header}>
           <span style={styles.logo}>🐾 PawMatch</span>
           <h2 style={styles.titulo}>Iniciar sesión</h2>
           <p style={styles.subtitulo}>Bienvenido de nuevo</p>
         </div>
 
-        {/* Error */}
         {error && <div style={styles.alerta}>{error}</div>}
 
-        {/* Formulario */}
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.grupo}>
             <label style={styles.label}>Correo electrónico</label>
             <input
-              name="email"
+              name="correo"
               type="email"
               placeholder="correo@ejemplo.com"
-              value={form.email}
+              value={form.correo}
               onChange={handleChange}
               style={styles.input}
               required
@@ -109,9 +104,7 @@ export default function PawMatchAuth() {
           </div>
 
           <div style={styles.olvidaste}>
-            <a href="/recuperar" style={styles.linkPequeño}>
-              ¿Olvidaste tu contraseña?
-            </a>
+            <a href="/recuperar" style={styles.linkPequeño}>¿Olvidaste tu contraseña?</a>
           </div>
 
           <button
@@ -125,9 +118,7 @@ export default function PawMatchAuth() {
 
         <p style={styles.pie}>
           ¿No tienes cuenta?{" "}
-          <a href="/registro" style={styles.link}>
-            Regístrate gratis
-          </a>
+          <a href="/registro" style={styles.link}>Regístrate gratis</a>
         </p>
       </div>
     </div>
@@ -136,7 +127,6 @@ export default function PawMatchAuth() {
 
 const colores = {
   naranja: "#E8873A",
-  naranjaOscuro: "#C96A20",
   crema: "#FDF6EC",
   texto: "#3D2B1F",
   gris: "#9E8B7D",
@@ -163,99 +153,35 @@ const styles = {
     boxShadow: "0 8px 32px rgba(61, 43, 31, 0.12)",
     border: `1px solid ${colores.borde}`,
   },
-  header: {
-    textAlign: "center",
-    marginBottom: "28px",
-  },
-  logo: {
-    fontSize: "22px",
-    fontWeight: "700",
-    color: colores.naranja,
-  },
-  titulo: {
-    fontSize: "26px",
-    fontWeight: "700",
-    color: colores.texto,
-    margin: "8px 0 4px",
-  },
-  subtitulo: {
-    fontSize: "14px",
-    color: colores.gris,
-    margin: 0,
-  },
+  header: { textAlign: "center", marginBottom: "28px" },
+  logo: { fontSize: "22px", fontWeight: "700", color: colores.naranja },
+  titulo: { fontSize: "26px", fontWeight: "700", color: colores.texto, margin: "8px 0 4px" },
+  subtitulo: { fontSize: "14px", color: colores.gris, margin: 0 },
   alerta: {
-    backgroundColor: "#FDECEC",
-    color: colores.error,
-    border: "1px solid #F5C6C6",
-    borderRadius: "10px",
-    padding: "12px 16px",
-    fontSize: "14px",
-    marginBottom: "18px",
+    backgroundColor: "#FDECEC", color: colores.error,
+    border: "1px solid #F5C6C6", borderRadius: "10px",
+    padding: "12px 16px", fontSize: "14px", marginBottom: "18px",
   },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-  },
-  grupo: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-  },
-  label: {
-    fontSize: "13px",
-    fontWeight: "600",
-    color: colores.texto,
-  },
+  form: { display: "flex", flexDirection: "column", gap: "16px" },
+  grupo: { display: "flex", flexDirection: "column", gap: "6px" },
+  label: { fontSize: "13px", fontWeight: "600", color: colores.texto },
   input: {
-    padding: "11px 14px",
-    borderRadius: "10px",
-    border: `1.5px solid ${colores.borde}`,
-    fontSize: "15px",
-    color: colores.texto,
-    outline: "none",
-    backgroundColor: colores.crema,
+    padding: "11px 14px", borderRadius: "10px",
+    border: `1.5px solid ${colores.borde}`, fontSize: "15px",
+    color: colores.texto, outline: "none", backgroundColor: colores.crema,
   },
-  olvidaste: {
-    textAlign: "right",
-    marginTop: "-6px",
-  },
-  linkPequeño: {
-    fontSize: "13px",
-    color: colores.gris,
-    textDecoration: "none",
-  },
+  olvidaste: { textAlign: "right", marginTop: "-6px" },
+  linkPequeño: { fontSize: "13px", color: colores.gris, textDecoration: "none" },
   btn: {
-    marginTop: "4px",
-    padding: "13px",
-    borderRadius: "12px",
-    border: "none",
-    backgroundColor: colores.naranja,
-    color: "#fff",
-    fontSize: "16px",
-    fontWeight: "700",
-    cursor: "pointer",
+    marginTop: "4px", padding: "13px", borderRadius: "12px",
+    border: "none", backgroundColor: colores.naranja, color: "#fff",
+    fontSize: "16px", fontWeight: "700", cursor: "pointer",
   },
   btnDesactivado: {
-    marginTop: "4px",
-    padding: "13px",
-    borderRadius: "12px",
-    border: "none",
-    backgroundColor: "#D4A97A",
-    color: "#fff",
-    fontSize: "16px",
-    fontWeight: "700",
-    cursor: "not-allowed",
+    marginTop: "4px", padding: "13px", borderRadius: "12px",
+    border: "none", backgroundColor: "#D4A97A", color: "#fff",
+    fontSize: "16px", fontWeight: "700", cursor: "not-allowed",
   },
-  pie: {
-    textAlign: "center",
-    marginTop: "20px",
-    fontSize: "14px",
-    color: colores.gris,
-  },
-  link: {
-    color: colores.naranja,
-    fontWeight: "600",
-    textDecoration: "none",
-  },
+  pie: { textAlign: "center", marginTop: "20px", fontSize: "14px", color: colores.gris },
+  link: { color: colores.naranja, fontWeight: "600", textDecoration: "none" },
 };
