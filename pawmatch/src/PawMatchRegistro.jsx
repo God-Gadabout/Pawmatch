@@ -39,14 +39,14 @@ export default function PawMatchRegistro() {
 
     try {
       // 1. Crear usuario en Supabase Auth
-      const { error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.correo,
         password: form.password,
       });
 
       if (authError) throw authError;
 
-      // 2. Insertar datos en la tabla "usuarios"
+      // 2. Insertar datos en la tabla "usuarios" (sin contrasena)
       const { error: dbError } = await supabase.from("usuarios").insert([
         {
           nombres: form.nombres,
