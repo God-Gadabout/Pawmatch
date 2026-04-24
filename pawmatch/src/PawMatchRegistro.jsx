@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "./supabase";
 
-export default function PawMatchRegistro() {
+export default function PawMatchRegistro({ onVolver, onLogin }) {
   const [form, setForm] = useState({
     nombres: "",
     apellidos: "",
@@ -150,7 +150,7 @@ export default function PawMatchRegistro() {
 
         <p style={styles.pie}>
           ¿Ya tienes cuenta?{" "}
-          <a href="/login" style={styles.link}>Inicia sesión</a>
+          <span onClick={onLogin} style={{...styles.link, cursor: "pointer"}}>Inicia sesión</span>
         </p>
       </div>
     </div>
