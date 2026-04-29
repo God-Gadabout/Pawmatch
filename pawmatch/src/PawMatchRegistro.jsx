@@ -21,6 +21,8 @@ export default function PawMatchRegistro({ onVolver, onLogin }) {
     setError("");
   };
 
+  const [backHover, setBackHover] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -87,6 +89,21 @@ export default function PawMatchRegistro({ onVolver, onLogin }) {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
+        <div style={{ display: "flex", justifyContent: "flex-start" }}>
+          <button
+            type="button"
+            onClick={onVolver}
+            onMouseEnter={() => setBackHover(true)}
+            onMouseLeave={() => setBackHover(false)}
+            style={{
+              ...styles.backBtn,
+              backgroundColor: backHover ? "rgba(0,0,0,.04)" : "transparent",
+              transform: backHover ? "translateX(-1px)" : "none",
+            }}
+          >
+            🡠 Inicio
+          </button>
+        </div>
         <div style={styles.header}>
           <span style={styles.logo}>🐾 PawMatch</span>
           <h2 style={styles.titulo}>Crear cuenta</h2>
@@ -226,4 +243,16 @@ const styles = {
   },
   pie: { textAlign: "center", marginTop: "20px", fontSize: "14px", color: colores.gris },
   link: { color: colores.naranja, fontWeight: "600", textDecoration: "none" },
+  backBtn: {
+    background: "transparent",
+    color: colores.naranja,
+    border: `1px solid ${colores.borde}`,
+    padding: "6px 12px",
+    borderRadius: 8,
+    fontWeight: 700,
+    fontSize: 14,
+    cursor: "pointer",
+    transition: "background-color .2s, transform .2s",
+    margin: "6px 0 12px 6px",
+  },
 };
