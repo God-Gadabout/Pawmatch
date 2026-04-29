@@ -6,33 +6,77 @@ import PawMatchHome     from "./PawMatchHome";
 import PawMatchRegistro from "./PawMatchRegistro";
 import PawMatchAuth     from "./PawMatch_Auth";
 
-// Páginas disponibles: "home" | "login" | "registro"
+// Flujo de enrutamiento simple en el cliente
 export default function App() {
-  const [pagina, setPagina] = useState("home");
+  const [route, setRoute] = useState("home"); // posibles: home, login, registro, inicio, rescatista, refugio
+
+  const handleLogout = () => {
+    // Limpiar sesión local
+    localStorage.removeItem("pawmatch_user");
+    setRoute("home");
+  };
+
+  // Componentes de rutas simples (placeholders para roles)
+  const InicioPage = () => (
+    <div style={{ padding: 40 }}>
+      <h2>Bienvenido</h2>
+      <p>Panel de usuario Adoptante. Aquí iría el dashboard real.</p>
+      <button onClick={handleLogout}>Cerrar sesión</button>
+    </div>
+  );
+  const RescatistaPage = () => (
+    <div style={{ padding: 40 }}>
+      <h2>Bienvenido, Rescatista</h2>
+      <p>Panel de usuario Rescatista. Aquí iría el dashboard real.</p>
+      <button onClick={handleLogout}>Cerrar sesión</button>
+    </div>
+  );
+  const RefugioPage = () => (
+    <div style={{ padding: 40 }}>
+      <h2>Bienvenido, Refugio</h2>
+      <p>Panel de usuario Refugio. Aquí iría el dashboard real.</p>
+      <button onClick={handleLogout}>Cerrar sesión</button>
+    </div>
+  );
 
   return (
     <>
-      {pagina === "home" && (
+      {route === "home" && (
         <PawMatchHome
-          onLogin={()    => setPagina("login")}
-          onRegistro={()  => setPagina("registro")}
+          onLogin={() => setRoute("login")}
+          onRegistro={() => setRoute("registro")}
         />
       )}
 
-      {pagina === "login" && (
-        // PawMatchAuth maneja internamente login ↔ registro
-        // pero puedes pasarle la página inicial como prop si lo separas
+      {route === "login" && (
         <PawMatchAuth
-          paginaInicial="login"
-          onVolver={() => setPagina("home")}
+          onVolver={() => setRoute("home")}
+          onRegistro={() => setRoute("registro")}
+          onNavigate={(rol) => {
+            // Mapeo de roles a rutas internas
+            if (rol === "adoptante") setRoute("inicio");
+            else if (rol === "rescatista") setRoute("rescatista");
+            else if (rol === "refugio") setRoute("refugio");
+            else setRoute("inicio");
+          }}
         />
       )}
 
-      {pagina === "registro" && (
+      {route === "registro" && (
         <PawMatchRegistro
-          onVolver={() => setPagina("home")}
-          onLogin={()   => setPagina("login")}
+          onVolver={() => setRoute("home")}
+          onLogin={() => setRoute("login")}
         />
+      )}
+
+      {route === "inicio" && (
+        <InicioPage />
+      )}
+      {route === "rescatista" && (
+        <RescatistaPage />
+      )}
+      {route === "refugio" && (
+        <RefugioPage />
       )}
     </>
   );

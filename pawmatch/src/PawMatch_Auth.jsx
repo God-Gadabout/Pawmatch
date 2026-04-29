@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "./supabase";
 
-export default function PawMatchAuth({ onVolver, onRegistro }) {
+export default function PawMatchAuth({ onVolver, onRegistro, onNavigate }) {
   const [form, setForm] = useState({ correo: "", password: "" });
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
@@ -42,13 +42,16 @@ export default function PawMatchAuth({ onVolver, onRegistro }) {
       localStorage.setItem("pawmatch_user", JSON.stringify(usuario));
 
       // 4. Redirigir según rol
-      const rutas = {
-        adoptante: "/inicio",
-        rescatista: "/rescatista",
-        refugio: "/refugio",
-      };
-
-      window.location.href = rutas[usuario.rol] || "/inicio";
+      if (typeof onNavigate === "function") {
+        onNavigate(usuario.rol);
+      } else {
+        const rutas = {
+          adoptante: "/inicio",
+          rescatista: "/rescatista",
+          refugio: "/refugio",
+        };
+        window.location.href = rutas[usuario.rol] || "/inicio";
+      }
     } catch (err) {
       if (
         err.message?.includes("Invalid login credentials") ||
