@@ -5,16 +5,54 @@ import { useState } from "react";
 import PawMatchHome     from "./PawMatchHome";
 import PawMatchRegistro from "./PawMatchRegistro";
 import PawMatchAuth     from "./PawMatch_Auth";
+import PawAdoptDashboard from "./PawAdoptDashboard";
+import PetDetail from "./PetDetail";
+import PawRescatPanel from "./PawRescatPanel";
 
 // Flujo de enrutamiento simple en el cliente
 export default function App() {
   const [route, setRoute] = useState("home"); // posibles: home, login, registro, inicio, rescatista, refugio
+  const [mascotas, setMascotas] = useState([
+    {
+      id: 1,
+      nombre: "Luna",
+      especie: "perro",
+      tamano: "mediano",
+      ciudad: "Cartagena",
+      descripcion: "Cariñosa y muy sociable. Le encantan los paseos largos.",
+      fotos: ["https://placekitten.com/400/300", "https://placekitten.com/401/300"],
+    },
+    {
+      id: 2,
+      nombre: "Milo",
+      especie: "gato",
+      tamano: "pequeño",
+      ciudad: "Bogotá",
+      descripcion: "Juguetón y curioso. Se lleva bien con niños.",
+      fotos: ["https://placekitten.com/402/300"],
+    },
+  ]);
+  const [solicitudes, setSolicitudes] = useState([]);
+  const [selectedPet, setSelectedPet] = useState(null);
 
   const handleLogout = () => {
     // Limpiar sesión local
     localStorage.removeItem("pawmatch_user");
     setRoute("home");
   };
+
+  const handleSolicitar = (mascota) => {
+    const user = JSON.parse(localStorage.getItem("pawmatch_user"));
+    const adop = user?.nombres || "Usuario";
+    const solicitud = { id: Date.now(), mascotaId: mascota.id, mascotaNombre: mascota.nombre, adoptante: adop, estado: "pendiente" };
+    setSolicitudes([solicitud, ...solicitudes]);
+  };
+
+  const handleOpenDetail = (mascota) => {
+    setSelectedPet(mascota);
+  };
+
+  const handleCloseDetail = () => setSelectedPet(null);
 
   // Componentes de rutas simples (placeholders para roles)
   const InicioPage = () => (
@@ -70,13 +108,18 @@ export default function App() {
       )}
 
       {route === "inicio" && (
-        <InicioPage />
+        <PawAdoptDashboard
+          user={JSON.parse(localStorage.getItem("pawmatch_user"))}
+          mascotas={mascotas}
+          onLogout={handleLogout}
+          onSolicitar={handleSolicitar}
+          onOpenDetail={handleOpenDetail}
+        />
       )}
-      {route === "rescatista" && (
-        <RescatistaPage />
-      )}
-      {route === "refugio" && (
-        <RefugioPage />
+      {route === "rescatista" && <PawRescatPanel onLogout={handleLogout} />}
+      {route === "refugio" && <PawRescatPanel onLogout={handleLogout} />}
+      {selectedPet && (
+        <PetDetail mascota={selectedPet} onClose={handleCloseDetail} />
       )}
     </>
   );
