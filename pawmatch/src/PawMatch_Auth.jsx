@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "./supabase";
 
-export default function PawMatchAuth() {
+export default function PawMatchAuth({ onVolver, onRegistro }) {
   const [form, setForm] = useState({ correo: "", password: "" });
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
@@ -104,7 +104,7 @@ export default function PawMatchAuth() {
           </div>
 
           <div style={styles.olvidaste}>
-            <a href="/recuperar" style={styles.linkPequeño}>¿Olvidaste tu contraseña?</a>
+            <span style={{...styles.linkPequeño, cursor: "pointer"}}>¿Olvidaste tu contraseña?</span>
           </div>
 
           <button
@@ -118,7 +118,7 @@ export default function PawMatchAuth() {
 
         <p style={styles.pie}>
           ¿No tienes cuenta?{" "}
-          <a href="/registro" style={styles.link}>Regístrate gratis</a>
+          <span onClick={onRegistro} style={{...styles.link, cursor: "pointer"}}>Regístrate gratis</span>
         </p>
       </div>
     </div>
